@@ -25,7 +25,7 @@ module Facter::Util::Macosx
     # by looking at the _name key of the _items dict for each _dataType
 
     def self.profiler_xml(data_field)
-        Facter::Util::Resolution.exec("/usr/sbin/system_profiler -xml #{data_field}")
+        Array(Facter::Util::Resolution.exec("/usr/sbin/system_profiler -xml #{data_field}")).join("\n")
     end
 
     def self.intern_xml(xml)
@@ -35,14 +35,13 @@ module Facter::Util::Macosx
 
     # Return an xml result, modified as we need it.
     def self.profiler_data(data_field)
-        begin
-            return nil unless parsed_xml = intern_xml(profiler_xml(data_field))
-            return nil unless data = parsed_xml[0]['_items'][0]
-            data.delete '_name'
-            data
-        rescue
-            return nil
-        end
+        return nil unless parsed_xml = intern_xml(profiler_xml(data_field))
+        return nil unless data = parsed_xml[0]['_items'][0]
+        data.delete '_name'
+        data
+    rescue
+        # If there's an exception, this field isn't available or is
+        # incorrectly formatted.
     end
 
     def self.hardware_overview

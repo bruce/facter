@@ -233,27 +233,35 @@ describe Facter::Util::Resolution do
 
     # It's not possible, AFAICT, to mock %x{}, so I can't really test this bit.
     describe "when executing code" do
-        it "should fail if any interpreter other than /bin/sh is requested" do
-            lambda { Facter::Util::Resolution.exec("/something", "/bin/perl") }.should raise_error(ArgumentError)
+
+        describe "using an interpreter other than /bin/sh" do
+            it "should fail" do
+                lambda { Facter::Util::Resolution.exec("/something", "/bin/perl") }.should raise_error(ArgumentError)
+            end
         end
 
-        it "should produce stderr content as a warning" do
-            stdout = stdin = stub('fh', :readlines => ["aaa\n"])
-            stderr = stub('stderr', :readlines => %w{my content})
-            Open3.expects(:popen3).with("/bin/true").yields(stdin, stdout, stderr)
+        describe "using /bin/sh as the interpreter" do
 
-            Facter.expects(:warn).with(['my','content'])
-            Facter::Util::Resolution.exec("/bin/true").should == 'aaa'
+            it "should produce stderr content as a warning" do
+                stdout = stdin = stub('fh', :readlines => ["aaa\n"])
+                stderr = stub('stderr', :readlines => %w{my content})
+                Open3.expects(:popen3).with("/bin/true").yields(stdin, stdout, stderr)
+                Facter.expects(:warn).with(['my','content'])
+                Facter::Util::Resolution.expects(:binary_exists?).with('/bin/true').returns(true)
+                Facter::Util::Resolution.exec("/bin/true").should == 'aaa'
+            end
+
+            it "should produce nil as a warning if nothing is printed to stderr" do
+                stdout = stdin = stub('fh', :readlines => ["aaa\n"])
+                stderr = stub('stderr', :readlines => [])
+                Open3.expects(:popen3).with("/bin/true").yields(stdin, stdout, stderr) 
+                Facter.expects(:warn).with(nil)
+                Facter::Util::Resolution.expects(:binary_exists?).with('/bin/true').returns(true)
+                Facter::Util::Resolution.exec("/bin/true").should == 'aaa'
+            end
+
         end
 
-        it "should produce nil as a warning if nothing is printed to stderr" do
-            stdout = stdin = stub('fh', :readlines => ["aaa\n"])
-            stderr = stub('stderr', :readlines => [])
-            Open3.expects(:popen3).with("/bin/true").yields(stdin, stdout, stderr)
-
-            Facter.expects(:warn).with(nil)
-            Facter::Util::Resolution.exec("/bin/true").should == 'aaa'
-        end
     end
 
     describe "when parsing output" do

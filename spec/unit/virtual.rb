@@ -1,8 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-require 'facter'
-require 'facter/util/virtual'
-
 describe "Virtual fact" do
 
     after do

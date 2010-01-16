@@ -39,24 +39,28 @@ class Facter::Util::Resolution
                 path = binary
             end
 
-            return nil unless FileTest.exists?(path)
+            return nil unless binary_exists?(path)
         end
 
         out = nil
         err = nil
         begin
-            Open3.popen3(code) do |stdin,stdout,stderr|
-              out = self.parse_output(stdout.readlines)
-              err = self.parse_output(stderr.readlines)
+            Open3.popen3(code) do |stdin, stdout, stderr|
+                out = self.parse_output(stdout.readlines)
+                err = self.parse_output(stderr.readlines)
             end
         rescue => detail
             $stderr.puts detail
             return nil
         end
         Facter.warn(err)
-
+        
         return nil if out == ""
         out
+    end
+
+    def self.binary_exists?(path)
+        File.exists?(path)
     end
 
     def self.parse_output(output)

@@ -1,8 +1,4 @@
-#!/usr/bin/env ruby
-
 require File.dirname(__FILE__) + '/../spec_helper'
-
-require 'facter'
 
 describe "SELinux facts" do
 
